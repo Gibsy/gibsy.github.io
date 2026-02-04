@@ -1,27 +1,654 @@
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-    <meta name="mailru-domain" content="LrtDgbW5ENciwfuK" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blackjack Neo Casino</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #000 100%);
+            min-height: 100vh;
+        }
+        .card {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .card-face {
+            backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        .card.is-hidden .card-inner {
+            transform: rotateY(180deg);
+        }
+        .glow-border {
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.4), 0 0 80px rgba(56, 189, 248, 0.2);
+        }
+        .table-felt {
+            background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129,0.35) 0, rgba(6, 95, 70,0.9) 50%, #022c22 100%);
+        }
+        .chip-shadow {
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+        }
+        .neon-text {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 0 25px rgba(56, 189, 248, 0.7);
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.6);
+            border-radius: 999px;
+        }
+    </style>
 </head>
+<body class="text-slate-100 flex items-center justify-center px-4 py-6">
+    <div class="max-w-6xl w-full mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-cyan-300 neon-text">
+                    Blackjack Neo Casino
+                </h1>
+                <p class="text-slate-400 mt-1 text-sm md:text-base">
+                    Играйте против ИИ-дилера, управляйте балансом и ощущайте атмосферу современного казино.
+                </p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <div class="text-xs uppercase tracking-wide text-slate-400">Баланс</div>
+                    <div id="balanceDisplay" class="text-2xl font-semibold text-emerald-400">
+                        $1 000
+                    </div>
+                </div>
+                <button id="resetBalanceBtn" class="text-xs px-3 py-1.5 rounded-full border border-slate-600/70 bg-slate-900/80 hover:bg-slate-800 text-slate-300 transition">
+                    Сброс баланса
+                </button>
+            </div>
+        </header>
 
-<link rel="stylesheet" href="style.css">
-<div class="win98-window">
-    <div class="win98-titlebar">
-        <span>Message</span>
-        <button class="win98-btn small">✕</button>
-    </div>
+        <!-- Main layout -->
+        <div class="grid lg:grid-cols-[2.2fr,1fr] gap-6 items-start">
+            <!-- Table -->
+            <main class="table-felt rounded-3xl border border-emerald-500/60 glow-border px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden">
+                <div class="pointer-events-none absolute inset-0 opacity-40"
+                     style="background: radial-gradient(circle at 20% 0, rgba(34,211,238,0.4) 0, transparent 50%),
+                                      radial-gradient(circle at 80% 0, rgba(16,185,129,0.4) 0, transparent 50%);"></div>
 
-    <div class="win98-content">
-        <h3 class="date">04/01/2026</h3>
-        <ul class="update-list">
-            <li>Артур пидор</li>
-            <li>Сука пидорас</li>
-            <li>саша</li>
+                <div class="relative z-10 flex flex-col gap-6">
+                    <!-- Dealer -->
+                    <section>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/80 border border-emerald-400/60 text-xs">ИИ</span>
+                                <h2 class="font-semibold tracking-wide text-sm text-slate-200 uppercase">Дилер</h2>
+                            </div>
+                            <div id="dealerStatus" class="text-xs text-slate-400"></div>
+                        </div>
 
-        </ul>
+                        <div class="bg-slate-950/60 border border-emerald-500/40 rounded-2xl px-3 sm:px-4 py-3 sm:py-4 shadow-xl/60">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2 text-xs text-slate-400">
+                                    <span class="uppercase tracking-wide">Очки дилера</span>
+                                    <span id="dealerScore" class="inline-flex items-center justify-center rounded-full border border-slate-600/80 px-2 py-0.5 text-slate-200 text-[11px]">
+                                        ?
+                                    </span>
+                                </div>
+                                <span id="dealerHint" class="text-[11px] text-emerald-300/80"></span>
+                            </div>
 
-        <div class="buttons">
-            <button class="win98-btn" onclick="history.back()">убить</button>
+                            <div id="dealerCards" class="flex flex-wrap gap-2 sm:gap-3 min-h-[84px]"></div>
+                        </div>
+                    </section>
+
+                    <!-- Center message -->
+                    <section class="flex flex-col items-center justify-center text-center">
+                        <div id="roundResult" class="text-lg sm:text-xl font-semibold text-slate-100 mb-1 min-h-[1.5rem]"></div>
+                        <p id="roundSubtext" class="text-xs sm:text-sm text-slate-400 min-h-[1.25rem]"></p>
+                    </section>
+
+                    <!-- Player -->
+                    <section>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-400/80 text-xs">Вы</span>
+                                <h2 class="font-semibold tracking-wide text-sm text-slate-200 uppercase">Игрок</h2>
+                            </div>
+                            <div id="playerStatus" class="text-xs text-slate-400"></div>
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-emerald-500/40 rounded-2xl px-3 sm:px-4 py-3 sm:py-4 shadow-xl/60">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2 text-xs text-slate-400">
+                                    <span class="uppercase tracking-wide">Ваши очки</span>
+                                    <span id="playerScore" class="inline-flex items-center justify-center rounded-full border border-emerald-400/80 px-2 py-0.5 text-emerald-300 text-[11px]">
+                                        0
+                                    </span>
+                                </div>
+                                <span id="playerHint" class="text-[11px] text-sky-300/90"></span>
+                            </div>
+
+                            <div id="playerCards" class="flex flex-wrap gap-2 sm:gap-3 min-h-[84px]"></div>
+                        </div>
+                    </section>
+
+                    <!-- Controls / Betting -->
+                    <section class="mt-1">
+                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                            <!-- Bet & actions -->
+                            <div class="flex-1 flex flex-col gap-3">
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <div>
+                                        <div class="text-xs uppercase tracking-wide text-slate-400">Ставка</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <div class="relative">
+                                                <input id="betInput" type="number" min="10" step="10" value="50" class="w-28 rounded-xl bg-slate-950/70 border border-slate-700/80 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/70 focus:border-cyan-400/80" />
+                                                <span class="absolute right-2 top-1.5 text-xs text-slate-500">$</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <button data-chip="25" class="chip-btn inline-flex items-center justify-center rounded-full bg-emerald-500 text-slate-950 text-xs font-semibold px-3 py-1.5 chip-shadow hover:bg-emerald-400 transition">
+                                            +25
+                                        </button>
+                                        <button data-chip="50" class="chip-btn inline-flex items-center justify-center rounded-full bg-sky-500 text-slate-950 text-xs font-semibold px-3 py-1.5 chip-shadow hover:bg-sky-400 transition">
+                                            +50
+                                        </button>
+                                        <button data-chip="100" class="chip-btn inline-flex items-center justify-center rounded-full bg-amber-400 text-slate-950 text-xs font-semibold px-3 py-1.5 chip-shadow hover:bg-amber-300 transition">
+                                            +100
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button id="dealBtn" class="flex-1 inline-flex items-center justify-center rounded-2xl bg-emerald-500 text-slate-950 font-semibold text-sm py-2.5 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400 transition">
+                                        Раздать
+                                    </button>
+                                    <button id="hitBtn" class="flex-1 inline-flex items-center justify-center rounded-2xl bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 disabled:border-slate-700 text-slate-950 font-semibold text-sm py-2.5 shadow-lg shadow-sky-500/40 hover:bg-sky-400 transition disabled:shadow-none" disabled>
+                                        Еще карту
+                                    </button>
+                                    <button id="standBtn" class="flex-1 inline-flex items-center justify-center rounded-2xl bg-slate-900 border border-slate-600 text-slate-100 font-semibold text-sm py-2.5 hover:bg-slate-800 transition disabled:border-slate-700 disabled:text-slate-500 disabled:bg-slate-900" disabled>
+                                        Хватит
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <aside class="w-full md:w-64 bg-black/40 border border-slate-700/80 rounded-2xl px-3 py-3 sm:px-4 sm:py-4 text-xs text-slate-300/90 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span>Сыграно раздач</span>
+                                    <span id="statRounds" class="font-semibold text-slate-50">0</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Ваши победы</span>
+                                    <span id="statWins" class="font-semibold text-emerald-400">0</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Поражения</span>
+                                    <span id="statLosses" class="font-semibold text-rose-400">0</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Ничьи</span>
+                                    <span id="statPushes" class="font-semibold text-sky-300">0</span>
+                                </div>
+                            </aside>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Right panel: log & tips -->
+            <aside class="space-y-4">
+                <section class="bg-slate-950/70 border border-slate-700/80 rounded-2xl p-3 sm:p-4 h-60 sm:h-72 flex flex-col">
+                    <header class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold text-slate-100">Журнал раздач</h3>
+                        <button id="clearLogBtn" class="text-[11px] text-slate-500 hover:text-slate-300 transition">Очистить</button>
+                    </header>
+                    <div id="log" class="flex-1 text-[11px] sm:text-xs text-slate-400 space-y-1 overflow-y-auto scrollbar-thin">
+                    </div>
+                </section>
+
+                <section class="bg-slate-950/80 border border-slate-700/80 rounded-2xl p-3 sm:p-4 text-[11px] sm:text-xs text-slate-300 space-y-2">
+                    <h3 class="text-sm font-semibold text-slate-100 mb-1">Мини-правила</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Цель — набрать 21 очко или как можно ближе, не перебирая.</li>
+                        <li>Карты 2–10 дают своё значение, J/Q/K — по 10 очков.</li>
+                        <li>Туз может быть 1 или 11 — что выгоднее для руки.</li>
+                        <li>Дилер берёт карты, пока у него меньше 17 очков.</li>
+                        <li>Выигрыш в обычной руке: ставка ×2, при ничьей ставка возвращается.</li>
+                    </ul>
+                </section>
+            </aside>
         </div>
+
+        <footer class="mt-6 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
+            <span>Современный блэкджек c ИИ-дилером • Клиентская логика, без реальных денег.</span>
+            <span id="seedLabel"></span>
+        </footer>
     </div>
-</div>
 
+    <script>
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const betInput = document.getElementById('betInput');
+        const dealBtn = document.getElementById('dealBtn');
+        const hitBtn = document.getElementById('hitBtn');
+        const standBtn = document.getElementById('standBtn');
+        const resetBalanceBtn = document.getElementById('resetBalanceBtn');
+        const dealerCardsEl = document.getElementById('dealerCards');
+        const playerCardsEl = document.getElementById('playerCards');
+        const dealerScoreEl = document.getElementById('dealerScore');
+        const playerScoreEl = document.getElementById('playerScore');
+        const dealerStatusEl = document.getElementById('dealerStatus');
+        const playerStatusEl = document.getElementById('playerStatus');
+        const dealerHintEl = document.getElementById('dealerHint');
+        const playerHintEl = document.getElementById('playerHint');
+        const roundResultEl = document.getElementById('roundResult');
+        const roundSubtextEl = document.getElementById('roundSubtext');
+        const logEl = document.getElementById('log');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        const seedLabel = document.getElementById('seedLabel');
+        const chipButtons = Array.from(document.querySelectorAll('.chip-btn'));
+        const statRounds = document.getElementById('statRounds');
+        const statWins = document.getElementById('statWins');
+        const statLosses = document.getElementById('statLosses');
+        const statPushes = document.getElementById('statPushes');
 
+        let balance = 1000;
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let currentBet = 50;
+        let inRound = false;
+        let stats = { rounds: 0, wins: 0, losses: 0, pushes: 0 };
+
+        const seed = Date.now().toString(36).slice(-6);
+        seedLabel.textContent = `Сид стола: ${seed}`;
+
+        let rngState = (function (s) {
+            let h = 0;
+            for (let i = 0; i < s.length; i++) {
+                h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            }
+            return h || 1;
+        })(seed);
+
+        function rand() {
+            rngState ^= rngState << 13;
+            rngState ^= rngState >>> 17;
+            rngState ^= rngState << 5;
+            return (rngState >>> 0) / 0xffffffff;
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createDeck() {
+            const suits = ['♠', '♥', '♦', '♣'];
+            const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const newDeck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    newDeck.push({ rank, suit });
+                }
+            }
+            shuffle(newDeck);
+            return newDeck;
+        }
+
+        function cardValue(card) {
+            if (card.rank === 'A') return 11;
+            if (['K', 'Q', 'J'].includes(card.rank)) return 10;
+            return Number(card.rank);
+        }
+
+        function handValue(hand) {
+            let total = 0;
+            let aces = 0;
+            for (const c of hand) {
+                total += cardValue(c);
+                if (c.rank === 'A') aces++;
+            }
+            while (total > 21 && aces > 0) {
+                total -= 10;
+                aces--;
+            }
+            return total;
+        }
+
+        function createCardElement(card, hidden = false) {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'card is-hidden relative w-14 h-20 sm:w-16 sm:h-24 rounded-xl bg-transparent';
+
+            const inner = document.createElement('div');
+            inner.className = 'card-inner w-full h-full relative';
+
+            const front = document.createElement('div');
+            front.className = 'card-face absolute inset-0 rounded-xl bg-slate-50 text-slate-900 border border-slate-300 flex flex-col justify-between p-1.5 sm:p-2 shadow-lg';
+
+            const cornerTop = document.createElement('div');
+            cornerTop.className = 'text-[10px] sm:text-xs';
+            cornerTop.textContent = `${card.rank}${card.suit}`;
+
+            const center = document.createElement('div');
+            center.className = 'text-base sm:text-lg text-center';
+            center.textContent = card.suit;
+
+            const cornerBottom = document.createElement('div');
+            cornerBottom.className = 'text-[10px] sm:text-xs self-end rotate-180';
+            cornerBottom.textContent = `${card.rank}${card.suit}`;
+
+            if (card.suit === '♥' || card.suit === '♦') {
+                front.classList.add('text-rose-600');
+            }
+
+            front.appendChild(cornerTop);
+            front.appendChild(center);
+            front.appendChild(cornerBottom);
+
+            const back = document.createElement('div');
+            back.className = 'card-face card-back absolute inset-0 rounded-xl bg-gradient-to-br from-sky-600 via-indigo-700 to-slate-900 border border-sky-400/80 flex items-center justify-center shadow-xl';
+            back.innerHTML = '<div class="w-8 h-8 rounded-full border-2 border-sky-300 flex items-center justify-center text-xs font-semibold tracking-[0.2em] text-sky-100">BJ</div>';
+
+            inner.appendChild(front);
+            inner.appendChild(back);
+            cardContainer.appendChild(inner);
+
+            if (!hidden) {
+                setTimeout(() => cardContainer.classList.remove('is-hidden'), 30);
+            }
+
+            return cardContainer;
+        }
+
+        function updateHandsUI(revealDealer = false) {
+            dealerCardsEl.innerHTML = '';
+            playerCardsEl.innerHTML = '';
+
+            dealerHand.forEach((card, index) => {
+                const hidden = index === 1 && !revealDealer && inRound;
+                const el = createCardElement(card, hidden);
+                if (hidden) {
+                    el.classList.add('is-hidden');
+                }
+                dealerCardsEl.appendChild(el);
+            });
+
+            playerHand.forEach(card => {
+                const el = createCardElement(card);
+                playerCardsEl.appendChild(el);
+            });
+
+            const playerVal = handValue(playerHand);
+            playerScoreEl.textContent = playerVal;
+
+            if (inRound) {
+                const visibleDealerHand = revealDealer ? dealerHand : [dealerHand[0]];
+                const dealerVal = handValue(visibleDealerHand);
+                dealerScoreEl.textContent = revealDealer ? dealerVal : `${dealerVal}+`;
+            } else {
+                dealerScoreEl.textContent = dealerHand.length ? handValue(dealerHand) : '?';
+            }
+
+            playerHintEl.textContent = playerVal >= 17 ? 'Риск перебора, подумайте о "Хватит"' : 'Безопасно взять ещё карту';
+
+            if (inRound && !revealDealer) {
+                dealerHintEl.textContent = 'Скрытая информация — дилер завершит ход после вас';
+            } else if (dealerHand.length) {
+                const dv = handValue(dealerHand);
+                dealerHintEl.textContent = dv < 17 ? 'ИИ готов взять ещё карту' : 'ИИ скорее всего остановится';
+            } else {
+                dealerHintEl.textContent = '';
+            }
+        }
+
+        function updateBalanceUI() {
+            balanceDisplay.textContent = `$${balance.toLocaleString('ru-RU')}`;
+        }
+
+        function log(message) {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour12: false });
+            const line = document.createElement('div');
+            line.textContent = `[${time}] ${message}`;
+            logEl.appendChild(line);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function updateStatsUI() {
+            statRounds.textContent = stats.rounds;
+            statWins.textContent = stats.wins;
+            statLosses.textContent = stats.losses;
+            statPushes.textContent = stats.pushes;
+        }
+
+        function setControlsState(state) {
+            if (state === 'idle') {
+                dealBtn.disabled = false;
+                hitBtn.disabled = true;
+                standBtn.disabled = true;
+            } else if (state === 'acting') {
+                dealBtn.disabled = true;
+                hitBtn.disabled = false;
+                standBtn.disabled = false;
+            } else if (state === 'locked') {
+                dealBtn.disabled = true;
+                hitBtn.disabled = true;
+                standBtn.disabled = true;
+            }
+        }
+
+        function startRound() {
+            currentBet = Math.max(10, Math.floor(Number(betInput.value) || 10));
+            if (currentBet > balance) {
+                currentBet = balance;
+            }
+            if (currentBet < 10) currentBet = 10;
+            betInput.value = currentBet;
+
+            if (currentBet > balance || balance <= 0) {
+                roundResultEl.textContent = 'Недостаточно средств';
+                roundSubtextEl.textContent = 'Сбросьте баланс, чтобы продолжить игру.';
+                setControlsState('idle');
+                return;
+            }
+
+            balance -= currentBet;
+            updateBalanceUI();
+            log(`Новая раздача, ставка $${currentBet}`);
+
+            inRound = true;
+            playerHand = [];
+            dealerHand = [];
+
+            if (deck.length < 15) {
+                deck = createDeck();
+                log('Колода перетасована');
+            }
+
+            playerHand.push(deck.pop());
+            dealerHand.push(deck.pop());
+            playerHand.push(deck.pop());
+            dealerHand.push(deck.pop());
+
+            roundResultEl.textContent = '';
+            roundSubtextEl.textContent = '';
+            dealerStatusEl.textContent = 'Ожидает действий игрока';
+            playerStatusEl.textContent = 'Ваш ход';
+
+            setControlsState('acting');
+            updateHandsUI(false);
+
+            const pVal = handValue(playerHand);
+            const dVal = handValue(dealerHand);
+            if (pVal === 21 || dVal === 21) {
+                setTimeout(() => finishRound(true), 500);
+            }
+        }
+
+        function playerHit() {
+            if (!inRound) return;
+            if (deck.length === 0) deck = createDeck();
+            const card = deck.pop();
+            playerHand.push(card);
+            log(`Игрок берёт карту: ${card.rank}${card.suit}`);
+            updateHandsUI(false);
+            const value = handValue(playerHand);
+            if (value > 21) {
+                setTimeout(() => finishRound(false), 600);
+            }
+        }
+
+        function dealerPlay(callback) {
+            dealerStatusEl.textContent = 'ИИ анализирует руку...';
+
+            const step = () => {
+                const value = handValue(dealerHand);
+                if (value < 17) {
+                    if (deck.length === 0) deck = createDeck();
+                    const card = deck.pop();
+                    dealerHand.push(card);
+                    log(`Дилер берёт карту: ${card.rank}${card.suit}`);
+                    updateHandsUI(true);
+                    setTimeout(step, 700);
+                } else {
+                    dealerStatusEl.textContent = 'ИИ завершил ход';
+                    callback();
+                }
+            };
+
+            setTimeout(step, 800);
+        }
+
+        function finishRound(initial = false) {
+            inRound = false;
+            setControlsState('locked');
+            dealerStatusEl.textContent = 'Открывает карты...';
+            updateHandsUI(true);
+
+            const playerVal = handValue(playerHand);
+            const dealerVal = handValue(dealerHand);
+
+            const finalize = () => {
+                const p = handValue(playerHand);
+                const d = handValue(dealerHand);
+                let result;
+
+                if (p > 21) {
+                    result = 'lose';
+                } else if (d > 21) {
+                    result = 'win';
+                } else if (p > d) {
+                    result = 'win';
+                } else if (p < d) {
+                    result = 'lose';
+                } else {
+                    result = 'push';
+                }
+
+                let reward = 0;
+                if (result === 'win') {
+                    reward = currentBet * 2;
+                    balance += reward;
+                    stats.wins++;
+                    roundResultEl.textContent = 'Вы выиграли!';
+                    roundResultEl.className = 'text-lg sm:text-xl font-semibold text-emerald-400';
+                    roundSubtextEl.textContent = `Вы получаете $${reward}. Итоговая рука: ${p} против ${d}.`;
+                    log(`Победа игрока. Игрок: ${p}, дилер: ${d}. Выплата $${reward}`);
+                } else if (result === 'lose') {
+                    stats.losses++;
+                    roundResultEl.textContent = 'Поражение';
+                    roundResultEl.className = 'text-lg sm:text-xl font-semibold text-rose-400';
+                    roundSubtextEl.textContent = `Вы проиграли ставку $${currentBet}. Итоговая рука: ${p} против ${d}.`;
+                    log(`Поражение игрока. Игрок: ${p}, дилер: ${d}. Потеря $${currentBet}`);
+                } else {
+                    balance += currentBet;
+                    stats.pushes++;
+                    roundResultEl.textContent = 'Ничья';
+                    roundResultEl.className = 'text-lg sm:text-xl font-semibold text-sky-300';
+                    roundSubtextEl.textContent = `Ставка $${currentBet} возвращена. Итоговая рука: ${p} против ${d}.`;
+                    log(`Ничья. Игрок: ${p}, дилер: ${d}. Ставка возвращена`);
+                }
+
+                stats.rounds++;
+                updateBalanceUI();
+                updateStatsUI();
+
+                dealerStatusEl.textContent = 'Ожидает новой раздачи';
+                playerStatusEl.textContent = 'Нажмите "Раздать", чтобы сыграть ещё';
+
+                setControlsState('idle');
+            };
+
+            if (initial || playerVal > 21) {
+                finalize();
+            } else {
+                dealerPlay(finalize);
+            }
+        }
+
+        dealBtn.addEventListener('click', () => {
+            if (inRound) return;
+            startRound();
+        });
+
+        hitBtn.addEventListener('click', () => {
+            playerHit();
+        });
+
+        standBtn.addEventListener('click', () => {
+            if (!inRound) return;
+            playerStatusEl.textContent = 'Вы остановились';
+            finishRound(false);
+        });
+
+        resetBalanceBtn.addEventListener('click', () => {
+            balance = 1000;
+            updateBalanceUI();
+            log('Баланс сброшен до $1000');
+        });
+
+        clearLogBtn.addEventListener('click', () => {
+            logEl.innerHTML = '';
+        });
+
+        chipButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const value = Number(btn.dataset.chip);
+                const current = Number(betInput.value) || 0;
+                let next = current + value;
+                if (next > balance) next = balance;
+                betInput.value = Math.max(10, next);
+            });
+        });
+
+        betInput.addEventListener('change', () => {
+            let v = Math.floor(Number(betInput.value) || 10);
+            if (v < 10) v = 10;
+            if (v > balance) v = balance;
+            betInput.value = v;
+        });
+
+        deck = createDeck();
+        updateBalanceUI();
+        updateStatsUI();
+        dealerStatusEl.textContent = 'Готов к первой раздаче';
+        playerStatusEl.textContent = 'Выберите ставку и нажмите "Раздать"';
+        log('Добро пожаловать в Blackjack Neo Casino!');
+    </script>
+</body>
+    </html> 
