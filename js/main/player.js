@@ -8,12 +8,10 @@ const trackTitle = document.getElementById("trackTitle");
 const tracks = [
     {title: "ずっと文化祭の準備をしていたい.mp3", src: "https://files.catbox.moe/9ubs2v.mp3"},
     {title: "afterworld.mp3", src: "https://files.catbox.moe/cssw9m.mp3"},
-    {title: "f4c3.mp3", src: "https://files.catbox.moe/ckw0ma.mp3"},
+    {title: "hfy2348f.mp3", src: "https://files.catbox.moe/gv87tm.mp3"},
     {title: "ov3rd4z.mp3", src: "https://files.catbox.moe/szsxsi.mp3"},
-    {title: "drugs.mp3", src: "https://files.catbox.moe/sn936v.mp3"},
-    {title: "свалка.mp3", src: "https://files.catbox.moe/3fuut0.mp3"},
-    {title: "vklube.mp3", src: "https://files.catbox.moe/gafx2v.mp3"},
-    {title: "цветы.mp3", src: "https://files.catbox.moe/o1lpzm.mp3"}
+    {title: "TENSHI NI FURETA YO.mp3", src: "https://files.catbox.moe/pj159f.mp3"},
+    {title: "vklube.mp3", src: "https://files.catbox.moe/gafx2v.mp3"}
 ];
 
 let currentTrack = 0;
