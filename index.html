@@ -11,6 +11,7 @@
 <meta name="robots" content="index, follow" />
 <meta name="theme-color" content="#0a0a0b" />
 <meta name="color-scheme" content="dark" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https://encrize.is-a.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'" />
 <link rel="canonical" href="https://encrize.is-a.dev/" />
 
 <meta property="og:type" content="website" />
@@ -68,8 +69,9 @@
   --bg-shade:.85;
   --paper:#0e0d0f;
   --ink:#cac4b6;
-  --faint:#6f6a60;
-  --red:#9e1015;
+  --faint:#9a948a;
+  --red:#d8484d;
+  --red-line:#9e1015;
   --amber:#b8893f;
   --green:#85a06e;
   --line:#2a2722;
@@ -107,11 +109,11 @@ body{
   margin-left:2px;vertical-align:text-bottom;animation:bl 1s steps(2) infinite;}
 @keyframes bl{50%{opacity:0;}}
 .skip-hint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  z-index:81;color:#bdbdbd;font-family:var(--mono);font-size:12px;
+  z-index:81;color:#e4e4e4;font-family:var(--mono);font-size:12px;
   letter-spacing:.18em;padding:9px 16px;
-  pointer-events:none;opacity:.55;animation:hintpulse 1.6s ease-in-out infinite;}
+  pointer-events:none;opacity:.85;animation:hintpulse 1.6s ease-in-out infinite;}
 #boot.gone ~ .skip-hint{display:none;}
-@keyframes hintpulse{0%,100%{opacity:.2;}50%{opacity:.3;}}
+@keyframes hintpulse{0%,100%{opacity:.65;}50%{opacity:.9;}}
 
 .wrap{position:relative;z-index:10;max-width:1100px;margin:0;
   padding:clamp(28px,5vh,56px) 6vw;min-height:100vh;
@@ -162,7 +164,7 @@ ul.links a:hover::before{content:"\00bb ";color:var(--red);}
 .marg.r{right:18px;top:34%;transform:rotate(90deg);transform-origin:right top;
   letter-spacing:.3em;}
 .marg.note{right:6vw;top:16vh;max-width:170px;color:var(--ink);opacity:.6;
-  transform:rotate(2.2deg);border-left:2px solid var(--red);padding-left:9px;
+  transform:rotate(2.2deg);border-left:2px solid var(--red-line);padding-left:9px;
   line-height:1.5;}
 .marg.cnt{left:6vw;bottom:6vh;}
 .marg.cnt b{color:var(--green);}
@@ -240,6 +242,7 @@ const L=[
 '<span class="ok">[  OK  ]</span> Reached target Local File Systems.',
 '         Starting Load/Save Random Seed...',
 '<span class="ok">[  OK  ]</span> Finished Load/Save Random Seed.',
+'<span class="ok">[  OK  ]</span> Why you read that...',
 '<span class="ok">[  OK  ]</span> Started udev Kernel Device Manager.',
 '         Starting Network Manager...',
 '<span class="ok">[  OK  ]</span> Started Network Manager.',
@@ -263,7 +266,7 @@ boot.addEventListener('click',skip);
   if(done)return;
   if(i>=L.length){
     log.innerHTML+='<span class="cur"></span>';
-    setTimeout(skip,4400);
+    setTimeout(skip,2242);
     return;
   }
   const line=L[i];
