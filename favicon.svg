@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="encrize terminal favicon">
+  <rect width="32" height="32" rx="6" fill="#0e0d0f"/>
+  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="5.25" fill="none" stroke="#2a2722" stroke-width="1.5"/>
+  <!-- prompt chevron > -->
+  <path d="M8 10 L14 16 L8 22" fill="none" stroke="#85a06e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- cursor block -->
+  <rect x="17" y="19.5" width="7" height="2.6" rx="0.6" fill="#9e1015"/>
+</svg>
